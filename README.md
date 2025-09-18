@@ -1,4 +1,4 @@
-# Optimum Partners LLC — Lead Generation Site (Starter)
+# Optimum Partners LLC — Lead Generation Site (Starter) 
 
 This is a **static, mobile‑friendly lead-gen site** with a simple **chat widget placeholder** that also captures leads.
 
