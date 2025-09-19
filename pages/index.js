@@ -27,16 +27,6 @@ export default function Home() {
           required
           style={{padding: 10, border: "1px solid #ddd", borderRadius: 8}}
         />
-
-        {/* hidden honeypot field to trap bots */}
-        <input
-          type="text"
-          name="__hp"
-          style={{display:"none"}}
-          tabIndex="-1"
-          autoComplete="off"
-        />
-
         <button
           type="submit"
           style={{
