@@ -7,28 +7,40 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const accountSid = process.env.ACCSID;
-  const authToken = process.env.ACCTOKEN;
-  const phone = process.env.PHONENUMBER;
-
-  const client = twilio(accountSid, authToken);
-
   try {
-    // Expecting { to: "+1XXXXXXXXXX", body: "Message text" } in the request
-    const { to, body } = req.body;
+    const { name, phone, service } = req.body;
 
-    if (!to || !body) {
-      return res.status(400).json({ error: "Missing 'to' or 'body' in request" });
+    // --- Basic Lead Qualification Example ---
+    let qualified = false;
+    let reason = "";
+
+    if (phone && phone.length >= 10) {
+      qualified = true;
+    } else {
+      reason = "Invalid phone number.";
     }
 
-    const message = await client.messages.create({
-      body,
-      from: phone, // Your Twilio number from env vars
-      to,
-    });
+    // Twilio setup (make sure your ENV variables are set in Vercel)
+    const client = twilio(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN
+    );
 
-    return res.status(200).json({ success: true, sid: message.sid });
+    if (qualified) {
+      await client.messages.create({
+        body: `New Lead: ${name} | ${phone} | Service: ${service}`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: process.env.TARGET_PHONE_NUMBER, // the number you want to receive texts at
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      qualified,
+      reason: qualified ? "Lead qualified and sent!" : reason,
+    });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error("Error in leads API:", error);
+    return res.status(500).json({ error: "Server error", details: error.message });
   }
 }
