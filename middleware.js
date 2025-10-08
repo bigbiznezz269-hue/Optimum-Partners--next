@@ -1,46 +1,27 @@
-// middleware.ts (place at the project root)
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+// middleware.js (plain JavaScript)
 
-// Replace with your real auth check as needed
-function isAuthenticated(req: NextRequest) {
-  const token = req.cookies.get("auth_token")?.value;
-  return Boolean(token);
+import { NextResponse } from "next/server";
+
+// Simple auth check (replace with your real logic)
+function isAuthenticated(req) {
+  // Example: check a cookie or header
+  // const token = req.cookies.get("session")?.value;
+  // return Boolean(token);
+  return true; // <- allow all for now
 }
 
-const PUBLIC_PATHS = new Set([
-  "/",              // homepage
-  "/submission",    // form page
-  "/success",       // thank-you page
-  "/api/leads",     // form POST endpoint
-  "/favicon.ico",
-]);
-
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  // Allow Next internals & static
-  const isInternal =
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/images") ||
-    pathname.startsWith("/assets");
-
-  if (isInternal || PUBLIC_PATHS.has(pathname)) {
-    return NextResponse.next();
-  }
-
-  // Everything else requires auth
+export function middleware(req) {
+  // Protect selected routes below (see config.matcher)
   if (!isAuthenticated(req)) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/signin";
-    url.search = `redirect=${encodeURIComponent(pathname)}`;
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(new URL("/login", req.url));
   }
-
   return NextResponse.next();
 }
 
+// Choose the routes you want to protect:
 export const config = {
-  // Run on all routes so we can skip internally in code
-  matcher: ["/:path*"],
+  matcher: [
+    "/dashboard/:path*",     // example protected area
+    // "/api/private/:path*", // add more patterns if needed
+  ],
 };
